@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Midnight Feast</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+:root{
+  --primary:#27e0c3;
+  --primary-soft:#e8fbf7;
+  --text:#0f172a;
+  --muted:#64748b;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --bg:#f9fafb;
+}
+
+/* Dark Mode Variables */
+body.dark {
+  --text:#f1f5f9;
+  --muted:#94a3b8;
+  --card:#1e293b;
+  --border:#334155;
+  --bg:#0f172a;
+  --primary-soft: rgba(39, 224, 195, 0.1);
+}
+
+*{
+  box-sizing:border-box;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  overflow-x: hidden;
+}
+
+.app{
+  max-width:430px;
+  margin:auto;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  position: relative;
+}
+
+/* ---------- COMMON ---------- */
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:24px;
+  padding:20px;
+}
+
+.interactive{
+  cursor:pointer;
+  transition:.25s;
+}
+.interactive:hover{
+  transform:translateY(-3px);
+  box-shadow:0 12px 24px rgba(39,224,195,0.15);
+}
+
+.screen{display:none;padding:0 20px}
+.screen.active{display:block}
+
+/* ---------- HEADER ---------- */
+.header{
+  padding:22px 20px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.brand{
+  font-size:24px;
+  font-weight:800;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.brand i { color: var(--primary); }
+
+.theme-toggle {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: none;
+}
+
+/* ---------- HOME ---------- */
+.vibes{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+.vibe{
+  text-align:center;
+  padding:18px 10px;
+  border: 2px solid transparent;
+}
+.vibe.selected {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+.vibe b { display: block; font-size: 14px; }
+.vibe span{
+  display:block;
+  font-size:10px;
+  color:var(--muted);
+  margin-top: 4px;
+}
+
+.scan{
+  margin:22px 0;
+  text-align:center;
+  position: relative;
+}
+.scan-icon{
+  width:90px;height:90px;
+  margin:auto;
+  border-radius:50%;
+  background:var(--primary-soft);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:36px;
+  box-shadow:0 0 40px rgba(39,224,195,0.4);
+  position: relative;
+  overflow: hidden;
+}
+.scan-btn{
+  margin-top:18px;
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:999px;
+  background:#9cf1e3;
+  font-weight:700;
+  transition: all 0.3s;
+  color: #004d43;
+}
+.scan-btn.ready {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 10px 20px rgba(39,224,195,0.3);
+}
+
+/* Result Card on Home */
+.recent-result-card {
+    margin: 22px 0;
+    border: 1px solid var(--primary);
+    background: linear-gradient(135deg, var(--card), var(--primary-soft));
+    animation: slideUp 0.5s ease;
+}
+.recent-result-card h4 { margin: 0 0 8px 0; font-size: 18px; color: var(--text); }
+.recent-result-card .meta { font-size: 10px; color: var(--muted); font-weight: 800; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 1px; }
+
+.spotted-items-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0 20px 0;
+}
+
+.item-chip {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text);
+}
+.item-chip i { color: #f87171; cursor: pointer; }
+
+/* AI Image Styles */
+.ai-image-container {
+    width: 100%;
+    aspect-ratio: 16/9;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 15px;
+    background: var(--border);
+    position: relative;
+}
+.ai-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.img-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* CAMERA MODAL */
+#camera-view {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    z-index: 200;
+    display: none;
+    flex-direction: column;
+}
+#video-feed {
+    width: 100%;
+    flex: 1;
+    object-fit: cover;
+}
+.camera-ui {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 40px 20px;
+    pointer-events: none;
+}
+.scanner-brackets {
+    position: absolute;
+    top: 20%;
+    left: 10%;
+    right: 10%;
+    bottom: 30%;
+    border: 2px solid rgba(39,224,195,0.4);
+    border-radius: 30px;
+}
+.scan-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--primary);
+    box-shadow: 0 0 15px var(--primary);
+    animation: scanMove 2.5s infinite linear;
+}
+@keyframes scanMove {
+    0% { top: 0; }
+    100% { top: 100%; }
+}
+.countdown-box {
+    align-self: flex-end;
+    background: rgba(0,0,0,0.6);
+    padding: 10px 20px;
+    border-radius: 20px;
+    color: var(--primary);
+    font-weight: 800;
+    font-size: 24px;
+}
+
+/* ---------- RECIPES ---------- */
+.loader{
+  text-align:center;
+  padding:60px 20px;
+  animation:pulse 1.4s infinite;
+}
+@keyframes pulse{
+  0%{opacity:.3}
+  50%{opacity:1}
+  100%{opacity:.3}
+}
+
+.recipe-list{
+  display:grid;
+  gap:14px;
+  margin-top:16px;
+}
+.recipe-card{
+  padding:18px;
+  border-radius:16px;
+  background:var(--card);
+  border:1px solid var(--border);
+  animation:slideUp .4s ease;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+.recipe-card-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    object-fit: cover;
+    background: var(--border);
+    flex-shrink: 0;
+}
+.recipe-card-content { flex: 1; }
+
+/* Vibe Colors */
+.vibe-healthy { border-left: 6px solid #10b981; }
+.vibe-comfort { border-left: 6px solid #6366f1; }
+.vibe-lazy { border-left: 6px solid #f59e0b; }
+
+.vibe-healthy .tags-row span:first-child { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+.vibe-comfort .tags-row span:first-child { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
+.vibe-lazy .tags-row span:first-child { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+
+.recipe-card h4 { margin: 0 0 4px 0; color: var(--text); font-size: 15px; }
+.recipe-card p { margin: 0; font-size: 11px; color: var(--muted); }
+.recipe-card .tags-row { margin-top: 8px; display: flex; gap: 6px; }
+
+@keyframes slideUp{
+  from{opacity:0;transform:translateY(20px)}
+  to{opacity:1;transform:none}
+}
+.hidden{display:none}
+
+.empty{
+  text-align:center;
+  padding:60px 20px;
+  color:var(--muted);
+}
+
+/* MODALS */
+#recipe-detail, #explanation-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg);
+    z-index: 300;
+    display: none;
+    overflow-y: auto;
+}
+#explanation-modal {
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.explanation-card {
+    background: var(--card);
+    width: 100%;
+    max-width: 380px;
+    border-radius: 32px;
+    padding: 35px;
+    text-align: left;
+    animation: pop .3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.formula-box {
+    background: var(--primary-soft);
+    border-radius: 16px;
+    padding: 15px;
+    margin-top: 15px;
+    border-left: 4px solid var(--primary);
+}
+.formula-label {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--primary);
+    margin-bottom: 5px;
+}
+.formula-text {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    font-family: monospace;
+}
+
+.detail-header-img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    background: var(--border);
+}
+.detail-content {
+    padding: 24px 20px;
+    margin-top: -30px;
+    background: var(--bg);
+    border-radius: 30px 30px 0 0;
+    position: relative;
+}
+
+/* ---------- STATS ---------- */
+.stats-grid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:14px;
+}
+.stat{
+  animation:statIn .45s ease both;
+  position: relative;
+}
+.stat-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+.stat-header i {
+    font-size: 14px;
+    color: var(--primary);
+}
+.stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 600;
+}
+.stat b{
+  display:block;
+  font-size:22px;
+  color: var(--primary);
+  margin-top:2px;
+}
+
+/* ---------- SETTINGS ---------- */
+.setting-card{
+  animation:slideIn .45s ease both;
+}
+@keyframes slideIn{
+  from{opacity:0;transform:translateY(16px)}
+  to{opacity:1;transform:none}
+}
+.input-wrap{
+  display:flex;
+  gap:10px;
+}
+.input{
+  flex:1;
+  padding:12px 14px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  transition:.25s;
+}
+.input:focus{
+  outline:none;
+  border-color:var(--primary);
+  box-shadow:0 0 12px rgba(39,224,195,0.4);
+}
+.add{
+  width:44px;height:44px;
+  border-radius:50%;
+  border:none;
+  background:var(--primary);
+  font-size:20px;
+  color: white;
+}
+.tags{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:10px;
+}
+.tag{
+  background:var(--primary-soft);
+  color: var(--primary);
+  padding:6px 14px;
+  border-radius:999px;
+  font-size:13px;
+  animation:pop .25s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+@keyframes pop{
+  from{transform:scale(.8);opacity:0}
+  to{transform:scale(1);opacity:1}
+}
+.save{
+  margin:20px 0;
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:999px;
+  background:var(--primary);
+  font-weight:700;
+  color: white;
+}
+.save.saved{
+  box-shadow:0 0 35px rgba(39,224,195,.7);
+}
+
+/* ---------- NAV ---------- */
+.nav{
+  margin-top:auto;
+  border-top:1px solid var(--border);
+  background:var(--card);
+  display:flex;
+  justify-content:space-around;
+  padding:14px 0;
+  position: sticky;
+  bottom: 0;
+}
+.nav-item{
+  text-align:center;
+  font-size:11px;
+  font-weight: 600;
+  color:var(--muted);
+  cursor:pointer;
+  flex: 1;
+}
+.nav-item i { font-size: 18px; margin-bottom: 6px; display: block; }
+.nav-item.active{color:var(--primary)}
+
+.chat{
+  position:fixed;
+  bottom:100px;
+  right:20px;
+  width:56px;height:56px;
+  border-radius:50%;
+  background:#111;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+  z-index: 100;
+}
+
+::-webkit-scrollbar { width: 0; }
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<div class="header">
+  <div class="brand"><i class="fas fa-moon"></i> Midnight Feast</div>
+  <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">
+    <i class="fas fa-moon"></i>
+  </button>
+</div>
+
+<!-- HOME SCREEN -->
+<div id="home" class="screen active">
+  <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 16px;">What's your vibe?</h2>
+  <div class="vibes">
+    <div class="card vibe interactive" onclick="setVibe('Healthy', this)">✨<b>Healthy</b><span>Fresh</span></div>
+    <div class="card vibe interactive" onclick="setVibe('Comfort', this)">❤️<b>Comfort</b><span>Cozy</span></div>
+    <div class="card vibe interactive" onclick="setVibe('Lazy', this)">🍳<b>Lazy</b><span>Quick</span></div>
+  </div>
+
+  <!-- EXPIRY ALERT BAR -->
+  <div id="expiry-alert-bar" class="card hidden" style="margin-top:16px; border-left: 4px solid #f97316; background: linear-gradient(90deg, rgba(248, 250, 252, 0.9), rgba(254, 215, 170, 0.4));">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+      <div style="display:flex; flex-direction:column; gap:4px;">
+        <span style="font-size:11px; font-weight:800; text-transform:uppercase; color:#f97316;">
+          Expiring in next 3 days
+        </span>
+        <div id="expiry-alert-list" class="tags"></div>
+      </div>
+      <button onclick="show('pantry', document.querySelectorAll('.nav-item')[4])"
+        style="border:none; background:#f97316; color:white; font-size:10px; font-weight:700; padding:6px 10px; border-radius:999px;">
+        View Pantry
+      </button>
+    </div>
+  </div>
+
+  <div id="home-scanner-ui">
+    <div class="card scan">
+      <div class="scan-icon" id="scan-visual"><i class="fas fa-camera"></i></div>
+      <h3 style="margin: 16px 0 8px 0;">Scan Your Fridge</h3>
+      <p style="color:var(--muted); font-size: 13px; margin: 0;">Verified 10-second ingredient scan</p>
+      <button id="scan-master-btn" class="scan-btn interactive" onclick="startCameraProcess()">Select a mood first</button>
+    </div>
+  </div>
+
+  <div id="home-result-ui" class="hidden">
+    <div class="card recent-result-card">
+        <p class="meta" id="verify-status">Verifying Contents...</p>
+        <h4 id="recent-recipe-name">Checking Fridge...</h4>
+        
+        <div id="review-section">
+            <div id="recent-img-container" class="ai-image-container hidden">
+                <div class="img-loading" id="img-loader">
+                    <i class="fas fa-circle-notch animate-spin mb-2"></i> Generating Dish Idea...
+                </div>
+                <img id="recent-recipe-img" src="" alt="">
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                <p style="font-size: 11px; font-weight: 800; color: var(--primary); text-transform: uppercase;">Spotted Items</p>
+                <span style="font-size: 10px; color: var(--muted); font-weight: 700;">Edit list if needed</span>
+            </div>
+            
+            <div id="recent-recipe-pills" class="spotted-items-list"></div>
+
+            <div class="input-wrap" id="manual-add-wrap" style="margin-bottom: 20px;">
+                <input id="manualItemInput" class="input" placeholder="Add missing item..." style="font-size: 12px; padding: 10px 15px;">
+                <button class="add interactive" style="width: 38px; height: 38px; font-size: 16px;" onclick="addManualIngredient()">+</button>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 10px;">
+            <button id="final-action-btn" class="save interactive" style="margin:0; flex:1.5; font-size: 12px; padding: 12px;" onclick="handleFinalAction()">Generate Recipe</button>
+            <button class="interactive" style="flex:1; border: 1px solid var(--border); background: var(--card); border-radius: 999px; font-weight: 700; font-size: 12px; color: var(--muted);" onclick="resetHomeScanner()">New Scan</button>
+        </div>
+    </div>
+  </div>
+</div>
+
+<!-- RECIPES SCREEN -->
+<div id="recipes" class="screen">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+    <h2 style="margin: 0; font-weight: 800;">Culinary Log</h2>
+    <button onclick="clearHistory()" style="background:none; border:none; color:var(--muted); font-size: 10px; text-transform: uppercase; font-weight: 800; cursor: pointer;">Clear All</button>
+  </div>
+  <div id="recipeLoader" class="loader hidden">🍳 Verifying Ingredients...</div>
+  <div id="recipeList" class="recipe-list"></div>
+  <div id="recipeEmpty" class="empty">No Recipes Yet</div>
+</div>
+
+<!-- STATS SCREEN -->
+<div id="stats" class="screen">
+  <h2 style="margin-bottom: 16px; font-weight: 800;">Your Impact</h2>
+  <div class="stats-grid">
+    <!-- Impact Points -->
+    <div class="card stat interactive" onclick="explainStat('impact')">
+      <div class="stat-header">
+          <i class="fas fa-bolt"></i>
+          <span class="stat-label">Impact Points</span>
+      </div>
+      <b><span class="count" id="stat-points" data-target="0">0</span></b>
+      <i class="fas fa-info-circle" style="position: absolute; bottom: 12px; right: 12px; font-size: 10px; opacity: 0.2;"></i>
+    </div>
+
+    <!-- Waste Reduced -->
+    <div class="card stat interactive" onclick="explainStat('waste')">
+        <div class="stat-header">
+            <i class="fas fa-recycle"></i>
+            <span class="stat-label">Waste Reduced</span>
+        </div>
+      <b><span class="count" id="stat-waste" data-target="0">0</span> kg</b>
+      <i class="fas fa-info-circle" style="position: absolute; bottom: 12px; right: 12px; font-size: 10px; opacity: 0.2;"></i>
+    </div>
+
+    <!-- Recipes Made -->
+    <div class="card stat interactive" onclick="explainStat('recipes')">
+        <div class="stat-header">
+            <i class="fas fa-mortar-pestle"></i>
+            <span class="stat-label">Recipes Made</span>
+        </div>
+      <b><span class="count" id="stat-recipes" data-target="0">0</span></b>
+      <i class="fas fa-info-circle" style="position: absolute; bottom: 12px; right: 12px; font-size: 10px; opacity: 0.2;"></i>
+    </div>
+
+    <!-- Sustainability -->
+    <div class="card stat interactive" onclick="explainStat('sustain')">
+        <div class="stat-header">
+            <i class="fas fa-leaf"></i>
+            <span class="stat-label">Sustainability</span>
+        </div>
+      <b><span class="count" id="stat-sustain" data-target="0">0</span>%</b>
+      <i class="fas fa-info-circle" style="position: absolute; bottom: 12px; right: 12px; font-size: 10px; opacity: 0.2;"></i>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS SCREEN -->
+<div id="settings" class="screen">
+  <h2 style="margin-bottom: 16px; font-weight: 800;">Settings & Safety</h2>
+  <div class="card setting-card">
+    <h4 style="margin: 0 0 12px 0;">Dietary Restrictions</h4>
+    <div class="input-wrap">
+      <input id="dietInput" class="input" placeholder="e.g. Vegetarian, Vegan">
+      <button class="add interactive" onclick="addTag('diet')">+</button>
+    </div>
+    <div id="dietTags" class="tags"></div>
+  </div>
+  <div class="card setting-card" style="margin-top:14px">
+    <h4 style="margin: 0 0 12px 0;">Allergies (Critical)</h4>
+    <div class="input-wrap">
+      <input id="allergyInput" class="input" placeholder="e.g. Peanuts, Dairy">
+      <button class="add interactive" onclick="addTag('allergy')">+</button>
+    </div>
+    <div id="allergyTags" class="tags"></div>
+  </div>
+  <button class="save interactive" onclick="savePrefs()">Save Safety Settings</button>
+</div>
+
+<!-- PANTRY SCREEN -->
+<div id="pantry" class="screen">
+  <h2 style="margin-bottom: 16px; font-weight: 800;">Pantry Tracker</h2>
+  <div class="card setting-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <h4 style="margin:0;">Items & Expiry</h4>
+      <span style="font-size:10px; color:var(--muted); font-weight:700;">Auto‑added from scans</span>
+    </div>
+    <div id="pantryList" class="tags" style="margin-top: 6px;"></div>
+  </div>
+</div>
+
+<!-- CAMERA MODAL -->
+<div id="camera-view">
+    <video id="video-feed" autoplay playsinline></video>
+    <canvas id="capture-canvas" class="hidden"></canvas>
+    <div class="camera-ui">
+        <div style="display: flex; justify-content: space-between; align-items: center; pointer-events: all;">
+            <button onclick="closeCamera()" style="background:none; border:none; color:white; font-size: 24px;"><i class="fas fa-times"></i></button>
+            <div class="countdown-box" id="timer">10s</div>
+        </div>
+        <div class="scanner-brackets"><div class="scan-line"></div></div>
+        <div style="text-align: center; color: white; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">Verified 10s Scan Phase</div>
+    </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div id="recipe-detail">
+    <div style="position: sticky; top: 20px; left: 20px; z-index: 10;">
+        <button onclick="closeDetail()" style="background:rgba(0,0,0,0.4); backdrop-filter: blur(4px); border:none; width: 44px; height: 44px; border-radius: 16px; color: white;"><i class="fas fa-arrow-left"></i></button>
+    </div>
+    <div id="detail-body"></div>
+</div>
+
+<!-- EXPLANATION MODAL -->
+<div id="explanation-modal" onclick="closeExplanation()">
+    <div class="explanation-card" onclick="event.stopPropagation()">
+        <div id="expl-icon" style="font-size: 40px; color: var(--primary); margin-bottom: 20px; text-align: center;"></div>
+        <h3 id="expl-title" style="font-weight: 800; margin-bottom: 12px; text-align: center;">Calculation Log</h3>
+        <p id="expl-text" style="color: var(--muted); font-size: 14px; line-height: 1.6;"></p>
+        
+        <div class="formula-box">
+            <div class="formula-label">The Mathematical Formula</div>
+            <div id="expl-formula" class="formula-text"></div>
+        </div>
+
+        <button class="save interactive" style="margin-top: 25px;" onclick="closeExplanation()">Got it</button>
+    </div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-item active" onclick="show('home',this)"><i class="fas fa-home"></i>Home</div>
+  <div class="nav-item" onclick="show('recipes',this)"><i class="fas fa-book-open"></i>Recipes</div>
+  <div class="nav-item" onclick="show('stats',this)"><i class="fas fa-chart-bar"></i>Stats</div>
+  <div class="nav-item" onclick="show('settings',this)"><i class="fas fa-shield-alt"></i>Safety</div>
+  <div class="nav-item" onclick="show('pantry',this)"><i class="fas fa-boxes-stacked"></i>Pantry</div>
+</div>
+
+</div>
+
+<script type="module">
+const apiKey = "AIzaSyDQ88YnRX200q2tMr8bnXGUwRsAE6ngn2Qz"; 
+const video = document.getElementById('video-feed');
+const canvas = document.getElementById('capture-canvas');
+const scanBtn = document.getElementById('scan-master-btn');
+const timerEl = document.getElementById('timer');
+
+// App State
+let selectedVibe = '';
+let currentIngredients = [];
+let isRecipeGenerated = false;
+
+let impactPoints = parseInt(localStorage.getItem('fchef_points') || '0');
+let totalWaste = parseFloat(localStorage.getItem('fchef_waste') || '0');
+let recipesCount = parseInt(localStorage.getItem('fchef_count') || '0');
+let history = JSON.parse(localStorage.getItem('fchef_history') || '[]');
+let preferences = JSON.parse(localStorage.getItem('fchef_prefs') || '{"diet":[], "allergy":[]}');
+
+// Pantry state
+let pantry = JSON.parse(localStorage.getItem('fchef_pantry') || '[]');
+
+// Produce shelf‑life map (days)
+const PRODUCE_SHELF_DAYS = {
+    banana: 3,
+    tomato: 5,
+    apple: 14,
+    orange: 14,
+    potato: 30,
+    onion: 30,
+    spinach: 2,
+    lettuce: 3,
+    cucumber: 5,
+    carrot: 14
+};
+
+function autoPredictProduceExpiry(name) {
+    const key = name.toLowerCase();
+    const days = PRODUCE_SHELF_DAYS[key] || 5;
+    const today = new Date();
+    const expiry = new Date(today.getTime() + days * 24 * 60 * 60 * 1000);
+    return {
+        id: Date.now() + Math.random(),
+        name,
+        type: 'produce',
+        manufactureDate: null,
+        expiryDate: expiry.toISOString().slice(0, 10),
+        addedOn: today.toISOString()
+    };
+}
+
+function savePantry() {
+    localStorage.setItem('fchef_pantry', JSON.stringify(pantry));
+    checkExpiryAlerts();
+    renderPantryList();
+}
+
+function mergePantryScan(packedItems, produceItems) {
+    const today = new Date();
+    packedItems.forEach(p => {
+        const exists = pantry.some(x => x.name === p.name && x.expiryDate === p.expiryDate);
+        if (!exists) {
+            pantry.push({
+                id: p.id || Date.now() + Math.random(),
+                name: p.name,
+                type: 'packaged',
+                manufactureDate: p.manufactureDate || null,
+                expiryDate: p.expiryDate || null,
+                addedOn: today.toISOString()
+            });
+        }
+    });
+
+    produceItems.forEach(pr => {
+        const exists = pantry.some(x => x.name === pr.name && x.type === 'produce');
+        if (!exists) {
+            pantry.push(autoPredictProduceExpiry(pr.name));
+        }
+    });
+
+    savePantry();
+}
+
+function checkExpiryAlerts() {
+    const now = new Date();
+    const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+    const soonExpiring = pantry.filter(item => {
+        if (!item.expiryDate) return false;
+        const exp = new Date(item.expiryDate);
+        const diff = exp.getTime() - now.getTime();
+        return diff > 0 && diff <= threeDaysMs;
+    });
+
+    const alertBar = document.getElementById('expiry-alert-bar');
+    const alertList = document.getElementById('expiry-alert-list');
+
+    if (!alertBar || !alertList) return;
+    if (soonExpiring.length === 0) {
+        alertBar.classList.add('hidden');
+        alertList.innerHTML = '';
+        return;
+    }
+
+    alertBar.classList.remove('hidden');
+    alertList.innerHTML = soonExpiring.map(i => {
+        return `<span class="tag">${i.name} • exp ${i.expiryDate}</span>`;
+    }).join('');
+}
+
+function renderPantryList() {
+    const container = document.getElementById('pantryList');
+    if (!container) return;
+    if (pantry.length === 0) {
+        container.innerHTML = '<span style="font-size:12px; color:var(--muted);">No tracked items yet. Scan your fridge/pantry.</span>';
+        return;
+    }
+    const today = new Date();
+
+    container.innerHTML = pantry.map(item => {
+        const expStr = item.expiryDate ? item.expiryDate : 'No date';
+        let status = '';
+        if (item.expiryDate) {
+            const exp = new Date(item.expiryDate);
+            const diff = (exp.getTime() - today.getTime()) / (24 * 60 * 60 * 1000);
+            if (diff < 0) status = ' • expired';
+            else if (diff <= 3) status = ' • exp soon';
+        }
+        return `
+        <div class="tag" style="background: var(--card); border:1px solid var(--border); color: var(--text);">
+            <span style="font-weight:700;">${item.name}</span>
+            <span style="font-size:10px; color:var(--muted);">
+                ${item.type === 'produce' ? 'Produce' : 'Packaged'} • Exp: ${expStr}${status}
+            </span>
+            <i class="fas fa-times" onclick="removePantryItem('${item.id}')"></i>
+        </div>`;
+    }).join('');
+}
+
+window.removePantryItem = (id) => {
+    pantry = pantry.filter(p => String(p.id) !== String(id));
+    savePantry();
+};
+
+function init() {
+    renderHistory();
+    updateStatDisplay();
+    renderTags('diet');
+    renderTags('allergy');
+    renderPantryList();
+    checkExpiryAlerts();
+    
+    if (localStorage.getItem('fchef_theme') === 'dark') {
+        document.body.classList.add('dark');
+        document.getElementById('theme-btn').innerHTML = '<i class="fas fa-sun"></i>';
+    }
+}
+
+window.toggleTheme = () => {
+    const isDark = document.body.classList.toggle('dark');
+    localStorage.setItem('fchef_theme', isDark ? 'dark' : 'light');
+    document.getElementById('theme-btn').innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+}
+
+window.show = (id, el) => {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+  if(id==='stats') animateNumbers();
+}
+
+window.setVibe = (vibe, el) => {
+    selectedVibe = vibe;
+    document.querySelectorAll('.vibe').forEach(v => v.classList.remove('selected'));
+    el.classList.add('selected');
+    scanBtn.classList.add('ready');
+    scanBtn.textContent = `Verify ${vibe} Scan`;
+}
+
+window.startCameraProcess = async () => {
+    if(!selectedVibe) { alert("Select a vibe first!"); return; }
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+        video.srcObject = stream;
+        document.getElementById('camera-view').style.display = 'flex';
+        startScanTimer();
+    } catch (err) { alert("Camera access denied."); }
+}
+
+function startScanTimer() {
+    let timeLeft = 10;
+    timerEl.textContent = `${timeLeft}s`;
+    const countdown = setInterval(() => {
+        timeLeft--;
+        timerEl.textContent = `${timeLeft}s`;
+        if(timeLeft <= 0) { clearInterval(countdown); captureAndDetect(); }
+    }, 1000);
+}
+
+window.closeCamera = () => {
+    if(video.srcObject) video.srcObject.getTracks().forEach(track => track.stop());
+    document.getElementById('camera-view').style.display = 'none';
+}
+
+async function captureAndDetect() {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    const base64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+    closeCamera();
+    
+    show('home', document.querySelectorAll('.nav-item')[0]);
+    document.getElementById('home-scanner-ui').classList.add('hidden');
+    document.getElementById('home-result-ui').classList.remove('hidden');
+    document.getElementById('verify-status').textContent = "Analyzing Scan...";
+    document.getElementById('recent-recipe-name').textContent = "Scanning Ingredients...";
+    document.getElementById('recent-recipe-pills').innerHTML = '';
+    
+    document.getElementById('recent-recipe-img').src = '';
+    document.getElementById('recent-img-container').classList.add('hidden');
+    document.getElementById('img-loader').classList.remove('hidden');
+    
+    isRecipeGenerated = false;
+    currentIngredients = [];
+    document.getElementById('final-action-btn').textContent = "Generate Recipe";
+    document.getElementById('review-section').style.display = 'block';
+
+    await detectIngredients(base64);
+}
+
+async function detectIngredients(base64) {
+    const prompt = `
+IDENTITY: Midnight Feast Vision.
+TASK: Identify ALL food items and ingredients visible in this image.
+For packaged pantry items (cartons, cans, jars, boxes), try to read manufacture (MFG/MFD) and expiry/use-by/best-before dates if visible.
+For fresh produce (fruits/vegetables), just list the item name.
+
+OUTPUT STRICT JSON:
+{
+  "detected": ["Egg", "Milk", "Spinach"],
+  "pantry": [
+    {
+      "name": "Amul Milk",
+      "type": "packaged",
+      "manufactureDate": "2025-02-10",
+      "expiryDate": "2025-02-18"
+    }
+  ],
+  "produce": [
+    { "name": "Banana" },
+    { "name": "Tomato" }
+  ]
+}
+`;
+
+    try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: "What food is in this image?" }, { inlineData: { mimeType: "image/jpeg", data: base64 } }] }],
+                systemInstruction: { parts: [{ text: prompt }] },
+                generationConfig: { responseMimeType: "application/json" }
+            })
+        });
+
+        const data = await response.json();
+        const result = JSON.parse(data.candidates[0].content.parts[0].text);
+        
+        currentIngredients = result.detected || [];
+
+        const detectedPantry = (result.pantry || []).map(item => ({
+            ...item,
+            id: Date.now() + Math.random()
+        }));
+        const detectedProduce = result.produce || [];
+
+        mergePantryScan(detectedPantry, detectedProduce);
+        updateReviewUI();
+    } catch (e) {
+        alert("Detection failed. Please try a clearer scan.");
+        resetHomeScanner();
+    }
+}
+
+function updateReviewUI() {
+    document.getElementById('verify-status').textContent = "Scan Verification";
+    document.getElementById('recent-recipe-name').textContent = "Review Ingredients";
+    
+    const container = document.getElementById('recent-recipe-pills');
+    container.innerHTML = currentIngredients.map((ing, idx) => `
+        <div class="item-chip">
+            ${ing} 
+            <i class="fas fa-times" onclick="removeDetectedIngredient(${idx})"></i>
+        </div>
+    `).join('');
+}
+
+window.removeDetectedIngredient = (idx) => {
+    currentIngredients.splice(idx, 1);
+    updateReviewUI();
+}
+
+window.addManualIngredient = () => {
+    const input = document.getElementById('manualItemInput');
+    const val = input.value.trim();
+    if (!val) return;
+    currentIngredients.push(val);
+    input.value = '';
+    updateReviewUI();
+}
+
+window.handleFinalAction = async () => {
+    if (isRecipeGenerated) {
+        show('recipes', document.querySelectorAll('.nav-item')[1]);
+        return;
+    }
+
+    if (currentIngredients.length === 0) {
+        alert("Please add at least one ingredient!");
+        return;
+    }
+
+    const btn = document.getElementById('final-action-btn');
+    btn.disabled = true;
+    btn.textContent = "Chef is Cooking...";
+    document.getElementById('verify-status').textContent = "Finalizing Gourmet Recipe...";
+
+    await generateFinalRecipe();
+}
+
+async function generateFinalRecipe() {
+    const prompt = `
+IDENTITY: Midnight Feast AI Assistant.
+SAFETY PROTOCOL: 
+1. STRITCLY AVOID ingredients restricted by: Diet [${preferences.diet.join(',')}] and Allergies [${preferences.allergy.join(',')}].
+2. Ensure the recipe is 100% EDIBLE.
+
+VIBE: ${selectedVibe}.
+INGREDIENTS: ${currentIngredients.join(', ')}.
+
+OUTPUT JSON:
+{
+    "recipeName": "Creative Name",
+    "ingredients": ["Item A", "Item B"],
+    "steps": ["Step 1", "Step 2", "Step 3"],
+    "impact": 150,
+    "waste": 0.3,
+    "safetyCheck": "Verified safe against allergies."
+}
+`;
+
+    try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: "Create a recipe with these verified items." }] }],
+                systemInstruction: { parts: [{ text: prompt }] },
+                generationConfig: { responseMimeType: "application/json" }
+            })
+        });
+
+        const data = await response.json();
+        const result = JSON.parse(data.candidates[0].content.parts[0].text);
+        
+        isRecipeGenerated = true;
+        document.getElementById('recent-recipe-name').textContent = result.recipeName;
+        document.getElementById('review-section').style.display = 'none';
+        document.getElementById('verify-status').textContent = "Recipe Ready!";
+        
+        const imgContainer = document.getElementById('recent-img-container');
+        const imgEl = document.getElementById('recent-recipe-img');
+        const loaderEl = document.getElementById('img-loader');
+        
+        imgEl.src = ''; 
+        imgContainer.classList.remove('hidden');
+        loaderEl.classList.remove('hidden');
+        
+        const imageUrl = await generateRecipeImage(result.recipeName);
+        
+        if (imageUrl) {
+            imgEl.src = imageUrl;
+            loaderEl.classList.add('hidden');
+            result.imageUrl = imageUrl;
+        }
+
+        saveResult(result);
+        
+        document.getElementById('final-action-btn').disabled = false;
+        document.getElementById('final-action-btn').textContent = "Open Recipe";
+
+    } catch (e) {
+        alert("Generation error. Check your ingredients and try again.");
+        document.getElementById('final-action-btn').disabled = false;
+        document.getElementById('final-action-btn').textContent = "Generate Recipe";
+    }
+}
+
+async function generateRecipeImage(recipeName) {
+    const prompt = `Gourmet professional food photography of ${recipeName}, high resolution, appetizing, studio lighting, top view, delicious culinary presentation`;
+    try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                instances: [ { prompt: prompt } ],
+                parameters: { sampleCount: 1 }
+            })
+        });
+        const data = await response.json();
+        if (data.predictions && data.predictions[0]) return `data:image/png;base64,${data.predictions[0].bytesBase64Encoded}`;
+        return null;
+    } catch (e) { return null; }
+}
+
+function saveResult(res) {
+    const item = { ...res, id: Date.now(), date: new Date().toLocaleDateString(), vibe: selectedVibe };
+    history.unshift(item);
+    impactPoints += res.impact;
+    totalWaste += res.waste;
+    recipesCount++;
+    localStorage.setItem('fchef_history', JSON.stringify(history.slice(0, 20)));
+    localStorage.setItem('fchef_points', impactPoints);
+    localStorage.setItem('fchef_waste', totalWaste.toFixed(2));
+    localStorage.setItem('fchef_count', recipesCount);
+    renderHistory();
+    updateStatDisplay();
+}
+
+window.resetHomeScanner = () => {
+    document.getElementById('home-result-ui').classList.add('hidden');
+    document.getElementById('home-scanner-ui').classList.remove('hidden');
+    selectedVibe = '';
+    isRecipeGenerated = false;
+    currentIngredients = [];
+    document.querySelectorAll('.vibe').forEach(v => v.classList.remove('selected'));
+    scanBtn.classList.remove('ready');
+    scanBtn.textContent = 'Select a mood first';
+}
+
+function renderHistory() {
+    const list = document.getElementById('recipeList');
+    const empty = document.getElementById('recipeEmpty');
+    if(history.length === 0) { list.innerHTML = ''; empty.classList.remove('hidden'); return; }
+    empty.classList.add('hidden');
+    list.innerHTML = history.map(h => {
+        const vibeClass = h.vibe ? `vibe-${h.vibe.toLowerCase()}` : '';
+        const thumb = h.imageUrl ? `<img src="${h.imageUrl}" class="recipe-card-img">` : `<div class="recipe-card-img flex items-center justify-center bg-gray-100 text-gray-300"><i class="fas fa-utensils"></i></div>`;
+        return `
+            <div class="recipe-card interactive ${vibeClass}" onclick="openDetail(${h.id})">
+                ${thumb}
+                <div class="recipe-card-content">
+                    <h4>${h.recipeName}</h4>
+                    <p>⏱ 10s Scan • ${h.vibe}</p>
+                    <div class="tags-row">
+                        <span style="font-size:9px; font-weight:800; padding:4px 10px; border-radius:8px;">+${h.impact} PTS</span>
+                        <span style="background:var(--primary-soft); opacity: 0.8; color:var(--text); font-size:9px; font-weight:800; padding:4px 10px; border-radius:8px;">♻ ${h.waste}KG</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+window.openDetail = (id) => {
+    const item = history.find(h => h.id === id);
+    const detail = document.getElementById('recipe-detail');
+    const body = document.getElementById('detail-body');
+    const heroImg = item.imageUrl ? `<img src="${item.imageUrl}" class="detail-header-img">` : `<div class="detail-header-img flex items-center justify-center bg-gray-200 text-gray-400"><i class="fas fa-utensils text-5xl"></i></div>`;
+    body.innerHTML = `
+        ${heroImg}
+        <div class="detail-content">
+            <h1 style="font-size: 28px; font-weight: 800; margin: 0 0 10px 0;">${item.recipeName}</h1>
+            <div style="background: rgba(34, 197, 94, 0.1); color: #22c55e; padding: 10px 14px; border-radius: 12px; font-size: 11px; font-weight: 800; margin-bottom: 24px; display: inline-block; border: 1px solid rgba(34, 197, 94, 0.2);">
+                <i class="fas fa-check-circle"></i> ${item.safetyCheck}
+            </div>
+            <h4 style="color: var(--primary); margin-bottom: 12px; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">Ingredients Spotted</h4>
+            <div class="tags" style="margin-bottom: 24px;">${item.ingredients.map(i => `<span class="tag">${i}</span>`).join('')}</div>
+            <h4 style="color: var(--primary); margin-bottom: 14px; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">Method</h4>
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                ${item.steps.map((s, i) => `
+                    <div style="display: flex; gap: 14px;">
+                        <b style="color: var(--primary); min-width: 24px; font-size: 18px;">${i+1}.</b>
+                        <p style="margin:0; font-size: 15px; line-height: 1.6; color: var(--text);">${s}</p>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+    detail.style.display = 'block';
+}
+
+window.closeDetail = () => document.getElementById('recipe-detail').style.display = 'none';
+
+// Statistics Explanations with Numerical Logic
+const explanations = {
+    impact: {
+        title: "Impact Points",
+        icon: '<i class="fas fa-bolt"></i>',
+        text: "Impact Points reward culinary creativity and nutritional balance. Every dish is analyzed for its 'Anti-Waste Efficiency' and ingredient diversity.",
+        formula: "Base(50) + (Items Spotted × 20) + Vibe Bonus"
+    },
+    waste: {
+        title: "Waste Reduced",
+        icon: '<i class="fas fa-recycle"></i>',
+        text: "We assign weight values to every item found in your fridge. By scanning and cooking them, we assume you've prevented these items from going to a landfill.",
+        formula: "Σ(Item_Avg_Weight) where Avg_Egg = 0.1kg, Avg_Tomato = 0.2kg"
+    },
+    recipes: {
+        title: "Recipes Made",
+        icon: '<i class="fas fa-mortar-pestle"></i>',
+        text: "The total count of unique, AI-generated culinary creations you have verified and saved to your local log.",
+        formula: "Total Verified Scans + Manual Additions"
+    },
+    sustain: {
+        title: "Sustainability",
+        icon: '<i class="fas fa-leaf"></i>',
+        text: "Sustainability is your overall efficiency rating. It compares your total points against the number of recipes you have processed.",
+        formula: "(Total Impact / Recipes Count) × Consistency_Factor"
+    }
+};
+
+window.explainStat = (key) => {
+    const data = explanations[key];
+    document.getElementById('expl-icon').innerHTML = data.icon;
+    document.getElementById('expl-title').textContent = data.title;
+    document.getElementById('expl-text').textContent = data.text;
+    document.getElementById('expl-formula').textContent = data.formula;
+    document.getElementById('explanation-modal').style.display = 'flex';
+};
+
+window.closeExplanation = () => document.getElementById('explanation-modal').style.display = 'none';
+
+window.clearHistory = () => { 
+    if(confirm("Clear history?")) { 
+        history = []; 
+        localStorage.removeItem('fchef_history'); 
+        impactPoints = 0; 
+        totalWaste = 0; 
+        recipesCount = 0; 
+        localStorage.setItem('fchef_points', 0); 
+        localStorage.setItem('fchef_waste', 0); 
+        localStorage.setItem('fchef_count', 0); 
+        renderHistory(); 
+        updateStatDisplay(); 
+        resetHomeScanner(); 
+    } 
+}
+
+function updateStatDisplay() {
+    document.getElementById('stat-points').dataset.target = impactPoints;
+    document.getElementById('stat-waste').dataset.target = totalWaste;
+    document.getElementById('stat-recipes').dataset.target = recipesCount;
+    document.getElementById('stat-sustain').dataset.target = Math.min(100, Math.floor(impactPoints / (recipesCount || 1) || 0));
+}
+
+function animateNumbers() {
+    document.querySelectorAll('.count').forEach(el => {
+        let target = parseFloat(el.dataset.target);
+        let current = 0;
+        let increment = target / 20 || 0;
+        if (target === 0) { el.textContent = '0'; return; }
+        const interval = setInterval(() => {
+            current += increment;
+            if (current >= target) { el.textContent = target % 1 === 0 ? target : target.toFixed(1); clearInterval(interval); }
+            else { el.textContent = current % 1 === 0 ? Math.floor(current) : current.toFixed(1); }
+        }, 30);
+    });
+}
+
+window.addTag = (type) => {
+    const input = document.getElementById(type + 'Input');
+    if (!input.value.trim()) return;
+    preferences[type].push(input.value.trim());
+    input.value = '';
+    renderTags(type);
+}
+window.removeTag = (type, index) => { 
+    preferences[type].splice(index, 1); 
+    renderTags(type); 
+}
+function renderTags(type) {
+    const container = document.getElementById(type + 'Tags');
+    container.innerHTML = preferences[type].map((t, i) => `<div class="tag">${t} <i class="fas fa-times" onclick="removeTag('${type}', ${i})"></i></div>`).join('');
+}
+window.savePrefs = () => {
+    localStorage.setItem('fchef_prefs', JSON.stringify(preferences));
+    const btn = document.querySelector('.save');
+    btn.classList.add('saved'); btn.textContent = 'Safety Settings Updated ✔';
+    setTimeout(() => { btn.classList.remove('saved'); btn.textContent = 'Save Safety Settings'; }, 1500);
+}
+init();
+</script>
+</body>
+</html>

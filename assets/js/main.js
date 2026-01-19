@@ -1,0 +1,1 @@
+import {toggleTheme} from "./ui.js"; window.toggleTheme=toggleTheme;

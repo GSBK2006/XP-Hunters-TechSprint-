@@ -1,0 +1,1 @@
+export function startCameraProcess(){} export function closeCamera(){}
