@@ -9,6 +9,12 @@ Midnight Feast is a high-fidelity kitchen management **MVP** designed to bridge 
 Built for the modern, sustainable home, it uses **computer vision and multimodal AI** to not just *see* food — but to analyze its **biological condition**, predict waste, and guide users toward smarter, zero-waste cooking decisions.
 
 ---
+## 🔗 Live MVP Demo
+👉 **https://midnight-feast.netlify.app/**
+
+> *This is a functional MVP showcasing the core Waste-First intelligence, biological scanning workflow, and zero-waste recipe logic.*
+
+---
 
 ## 🚀 Core Innovation: The *Waste-First Engine*
 
